@@ -1,0 +1,6 @@
+{
+  "name": "UBND Xã Tân An - Quản Lý Văn Bản & Cán Bộ",
+  "description": "Hệ thống Quản lý cán bộ và luân chuyển văn bản điện tử nội bộ Ủy ban Nhân dân Xã Tân An",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
