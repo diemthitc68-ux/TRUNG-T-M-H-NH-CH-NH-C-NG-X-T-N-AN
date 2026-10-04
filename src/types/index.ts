@@ -23,6 +23,7 @@ export interface Member {
   dob?: string;
   address?: string;
   notes?: string;
+  signature?: string; // Base64 signature image
   createdAt: string;
 }
 
@@ -50,11 +51,14 @@ export interface NoteLog {
   createdAt: string;
 }
 
+export type DocumentCategory = 'Hành chính' | 'Tư pháp' | 'Địa chính' | 'Văn hóa - Xã hội' | 'Tài chính - Kế toán' | 'Khác';
+
 export interface OfficialDocument {
   id: string;
   number: string; // Số/Ký hiệu, e.g. 142/UBND-VP
   kind: DocumentKind;
   docType: DocumentType;
+  category: DocumentCategory;
   summary: string; // Trích yếu
   sender: string; // Cơ quan gửi hoặc người nộp
   receiver?: string; // Nơi nhận / Người ký
@@ -67,4 +71,5 @@ export interface OfficialDocument {
   notes: string;
   history: NoteLog[];
   completedAt?: string;
+  signedBy?: string; // Name of person who signed
 }

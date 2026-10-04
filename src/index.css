@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --gov-red: #b71c1c;
+    --gov-dark-red: #7f0000;
+    --gov-yellow: #ffeb3b;
+    --gov-gold: #c69214;
+    --bg-gray: #f4f6f9;
+  }
   body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: var(--bg-gray);
   }
 }
 

@@ -2,18 +2,24 @@ import React, { useState } from 'react';
 import { Member } from '../types';
 import { ADMIN_ACCOUNT } from '../data/initialData';
 import { NationalEmblem } from './NationalEmblem';
-import { ShieldCheck, Lock, User, KeyRound, ArrowRight, AlertCircle, Sparkles, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, Lock, User, ArrowRight, AlertCircle, Sparkles, UserPlus } from 'lucide-react';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
+import { RegistrationModal } from './RegistrationModal';
 
 interface LoginScreenProps {
   members: Member[];
   onLogin: (member: Member) => void;
+  onUpdateMember: (id: string, updated: Partial<Member>) => void;
+  onAddMember: (member: Omit<Member, 'id' | 'createdAt'>) => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ members, onLogin }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ members, onLogin, onUpdateMember, onAddMember }) => {
   const [usernameOrEmail, setUsernameOrEmail] = useState(ADMIN_ACCOUNT.username);
   const [password, setPassword] = useState(ADMIN_ACCOUNT.password);
   const [errorMsg, setErrorMsg] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +164,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ members, onLogin }) =>
                   className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-red-800/20 focus:border-red-800 focus:bg-white transition-colors font-mono"
                 />
               </div>
+              <button
+                type="button"
+                onClick={() => setIsForgotModalOpen(true)}
+                className="mt-1 text-[10px] text-red-800 hover:underline font-medium"
+              >
+                Quên mật khẩu?
+              </button>
             </div>
 
             <div className="flex items-center justify-between text-xs text-slate-600">
@@ -170,9 +183,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ members, onLogin }) =>
                 />
                 <span>Ghi nhớ phiên làm việc</span>
               </label>
-              <span className="text-amber-800 font-mono text-[11px] font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                Admin: admin123
-              </span>
             </div>
 
             <button
@@ -182,7 +192,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ members, onLogin }) =>
               <span>Đăng Nhập Cổng Điều Hành</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+            <button
+              type="button"
+              onClick={() => setIsRegisterModalOpen(true)}
+              className="w-full py-2.5 px-4 bg-white border border-red-900 text-red-900 font-bold text-xs sm:text-sm rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer hover:bg-red-50"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Đăng Ký Tài Khoản Mới</span>
+            </button>
           </form>
+
+          <ForgotPasswordModal
+            isOpen={isForgotModalOpen}
+            onClose={() => setIsForgotModalOpen(false)}
+            members={members}
+            onUpdateMember={onUpdateMember}
+          />
+          <RegistrationModal
+            isOpen={isRegisterModalOpen}
+            onClose={() => setIsRegisterModalOpen(false)}
+            onRegister={onAddMember}
+          />
 
           {/* Quick Demo Login Buttons */}
           <div className="mt-6 pt-5 border-t border-slate-200">

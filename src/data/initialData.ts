@@ -3,7 +3,7 @@ import { Member, OfficialDocument } from '../types';
 // Cấu hình tài khoản Quản trị viên
 export const ADMIN_ACCOUNT = {
   username: "Huỳnh Phú Kính", // Đổi tên đăng nhập tại đây
-  password: "admin123",       // Đổi mật khẩu mới tại đây (ví dụ: "TanAn@2026#")
+  password: "hpkinh1909@",       // Đổi mật khẩu mới tại đây (ví dụ: "TanAn@2026#")
   role: "Giám đốc Trung tâm Hành chính công"
 };
 

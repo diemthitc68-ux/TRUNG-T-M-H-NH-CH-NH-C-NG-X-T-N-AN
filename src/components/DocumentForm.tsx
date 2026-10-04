@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Member, OfficialDocument, DocumentType, PriorityLevel, DocumentKind } from '../types';
+import { Member, OfficialDocument, DocumentType, PriorityLevel, DocumentKind, DocumentCategory } from '../types';
 import { FilePlus, CheckCircle2, Calendar, User, ArrowRight, ShieldAlert, FileText } from 'lucide-react';
 
 interface DocumentFormProps {
@@ -18,6 +18,8 @@ const DOCUMENT_TYPES: DocumentType[] = [
   'Giấy mời',
   'Đơn kiến nghị / Phản ánh',
 ];
+
+const CATEGORIES: DocumentCategory[] = ['Hành chính', 'Tư pháp', 'Địa chính', 'Văn hóa - Xã hội', 'Tài chính - Kế toán', 'Khác'];
 
 const PRIORITIES: PriorityLevel[] = ['Thường', 'Khẩn', 'Thượng khẩn', 'Hỏa tốc'];
 
@@ -38,6 +40,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   const [kind, setKind] = useState<DocumentKind>('Văn bản đến');
   const [number, setNumber] = useState('');
   const [docType, setDocType] = useState<DocumentType>('Công văn');
+  const [category, setCategory] = useState<DocumentCategory>('Hành chính');
   const [sender, setSender] = useState('');
   const [receiver, setReceiver] = useState('');
   const [summary, setSummary] = useState('');
@@ -74,6 +77,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
       number: number.trim(),
       kind,
       docType,
+      category,
       summary: summary.trim(),
       sender: sender.trim(),
       receiver: receiver.trim() || undefined,
@@ -212,6 +216,23 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 {DOCUMENT_TYPES.map((t) => (
                   <option key={t} value={t}>
                     {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Danh mục văn bản <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as DocumentCategory)}
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-red-800/20 focus:border-red-800 bg-white"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
                   </option>
                 ))}
               </select>

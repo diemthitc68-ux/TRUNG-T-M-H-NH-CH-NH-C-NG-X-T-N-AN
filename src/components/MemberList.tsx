@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Member, MemberRole, OfficialDocument } from '../types';
 import { UserPlus, Trash2, Phone, Mail, FileText, Check, AlertCircle, Edit2, Search } from 'lucide-react';
+import { CreateAccountModal } from './CreateAccountModal';
 
 interface MemberListProps {
   members: Member[];
@@ -35,10 +36,12 @@ export const MemberList: React.FC<MemberListProps> = ({
   selectedMemberFilter,
 }) => {
   // Form states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState<MemberRole>('Công chức Văn phòng - Thống kê');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [notes, setNotes] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,6 +69,7 @@ export const MemberList: React.FC<MemberListProps> = ({
         role,
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
+        password: password.trim() || undefined,
         notes: notes.trim() || undefined,
       });
       setEditingId(null);
@@ -75,6 +79,7 @@ export const MemberList: React.FC<MemberListProps> = ({
         role,
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
+        password: password.trim() || undefined,
         notes: notes.trim() || undefined,
       });
     }
@@ -83,6 +88,7 @@ export const MemberList: React.FC<MemberListProps> = ({
     setName('');
     setPhone('');
     setEmail('');
+    setPassword('');
     setNotes('');
     setErrorMsg('');
   };
@@ -93,6 +99,7 @@ export const MemberList: React.FC<MemberListProps> = ({
     setRole(m.role);
     setPhone(m.phone || '');
     setEmail(m.email || '');
+    setPassword(m.password || '');
     setNotes(m.notes || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -102,6 +109,7 @@ export const MemberList: React.FC<MemberListProps> = ({
     setName('');
     setPhone('');
     setEmail('');
+    setPassword('');
     setNotes('');
     setErrorMsg('');
   };
@@ -222,6 +230,19 @@ export const MemberList: React.FC<MemberListProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Mật khẩu đăng nhập
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-red-800/20 focus:border-red-800 bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Phân công phụ trách / Ghi chú
               </label>
               <textarea
@@ -288,7 +309,20 @@ export const MemberList: React.FC<MemberListProps> = ({
                 className="pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-md w-full sm:w-56 focus:outline-hidden focus:ring-1 focus:ring-red-800 focus:border-red-800"
               />
             </div>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="py-1.5 px-3 bg-red-900 hover:bg-red-800 text-white font-semibold text-xs rounded-md transition-colors shadow-xs flex items-center gap-1.5"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Tạo Tài Khoản</span>
+            </button>
           </div>
+
+          <CreateAccountModal
+            isOpen={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            onAddMember={onAddMember}
+          />
 
           {filteredMembers.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-sm">

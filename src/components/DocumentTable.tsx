@@ -26,6 +26,8 @@ interface DocumentTableProps {
   setSearchQuery: (query: string) => void;
   kindFilter: string;
   setKindFilter: (kind: string) => void;
+  categoryFilter: string;
+  setCategoryFilter: (category: string) => void;
   showOverdueOnly: boolean;
   setShowOverdueOnly: (val: boolean) => void;
   onUpdateStatus: (id: string, status: DocumentStatus) => void;
@@ -46,6 +48,8 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
   setSearchQuery,
   kindFilter,
   setKindFilter,
+  categoryFilter,
+  setCategoryFilter,
   showOverdueOnly,
   setShowOverdueOnly,
   onUpdateStatus,
@@ -126,6 +130,9 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
   const filteredDocs = documents.filter((doc) => {
     // Kind filter
     if (kindFilter !== 'all' && doc.kind !== kindFilter) return false;
+
+    // Category filter
+    if (categoryFilter !== 'all' && doc.category !== categoryFilter) return false;
 
     // Status filter
     if (statusFilter !== 'all' && doc.status !== statusFilter) return false;
@@ -261,6 +268,21 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
             <span>Lọc nhanh:</span>
           </div>
 
+          {/* Category Dropdown */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-red-800"
+          >
+            <option value="all">Tất cả danh mục</option>
+            <option value="Hành chính">Hành chính</option>
+            <option value="Tư pháp">Tư pháp</option>
+            <option value="Địa chính">Địa chính</option>
+            <option value="Văn hóa - Xã hội">Văn hóa - Xã hội</option>
+            <option value="Tài chính - Kế toán">Tài chính - Kế toán</option>
+            <option value="Khác">Khác</option>
+          </select>
+
           {/* Status Dropdown */}
           <select
             value={statusFilter}
@@ -305,6 +327,7 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
             assigneeFilter !== 'all' ||
             searchQuery !== '' ||
             kindFilter !== 'all' ||
+            categoryFilter !== 'all' ||
             showOverdueOnly) && (
             <button
               onClick={() => {
@@ -312,6 +335,7 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
                 setAssigneeFilter('all');
                 setSearchQuery('');
                 setKindFilter('all');
+                setCategoryFilter('all');
                 setShowOverdueOnly(false);
               }}
               className="text-xs text-red-800 hover:text-red-950 font-medium underline px-1"

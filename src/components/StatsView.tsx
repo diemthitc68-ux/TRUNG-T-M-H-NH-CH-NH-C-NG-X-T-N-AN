@@ -1,6 +1,7 @@
 import React from 'react';
 import { OfficialDocument, Member } from '../types';
 import { CheckCircle2, Clock, AlertTriangle, Users, FileText, TrendingUp, Award } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface StatsViewProps {
   documents: OfficialDocument[];
@@ -41,11 +42,13 @@ export const StatsView: React.FC<StatsViewProps> = ({
     const mOverdue = assigned.filter((d) => d.status !== 'Đã hoàn thành' && d.deadline < today).length;
 
     return {
-      ...m,
+      name: m.name,
       totalAssigned: assigned.length,
       completed: mCompleted,
       pending: mPending,
       overdue: mOverdue,
+      role: m.role,
+      id: m.id,
     };
   });
 
@@ -118,14 +121,35 @@ export const StatsView: React.FC<StatsViewProps> = ({
         </div>
       </div>
 
-      {/* Grid: Workload by Officer & Type Distribution */}
+      {/* Bar Chart Section */}
+      <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-xs">
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2 mb-4">
+          <Users className="w-4 h-4 text-red-800" />
+          <span>Biểu đồ khối lượng công việc theo cán bộ</span>
+        </h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={memberWorkload} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" fontSize={10} />
+              <YAxis fontSize={10} />
+              <Tooltip />
+              <Legend fontSize={12} />
+              <Bar dataKey="totalAssigned" name="Tổng nhận" fill="#991b1b" />
+              <Bar dataKey="pending" name="Đang xử lý" fill="#f59e0b" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Grid: Workload Table & Type Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Officer Workload Breakdown */}
         <div className="lg:col-span-8 bg-white rounded-lg border border-slate-200 p-5 shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
               <Users className="w-4 h-4 text-red-800" />
-              <span>Phân Bổ Thụ Lý Hồ Sơ Theo Cán Bộ</span>
+              <span>Bảng Phân Bổ Thụ Lý Hồ Sơ</span>
             </h3>
             <span className="text-xs text-slate-500">Bấm vào cán bộ để lọc</span>
           </div>

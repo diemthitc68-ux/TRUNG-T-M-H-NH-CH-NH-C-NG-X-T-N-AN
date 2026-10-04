@@ -16,10 +16,21 @@ import { DocumentDetailModal } from './components/DocumentDetailModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
 import { PrintRegistryModal } from './components/PrintRegistryModal';
 import { OfficialDocumentPrintModal } from './components/OfficialDocumentPrintModal';
-import { LoginScreen } from './components/LoginScreen';
+import { ToastProvider } from './components/ToastProvider';
+import { PortalInterface } from './components/PortalInterface';
 import { MyProfileModal } from './components/MyProfileModal';
+import { PersonalProgressPrintModal } from './components/PersonalProgressPrintModal';
+import { sendEmailNotification } from './services/emailService';
 
 export default function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
+  );
+}
+
+function AppContent() {
   // 1. Current Logged-in Official (Authentication State)
   const [currentUser, setCurrentUser] = useState<Member | null>(() => {
     try {
@@ -80,6 +91,7 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
   const [kindFilter, setKindFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showOverdueOnly, setShowOverdueOnly] = useState<boolean>(false);
 
@@ -90,6 +102,7 @@ export default function App() {
   const [isOfficialPrintOpen, setIsOfficialPrintOpen] = useState<boolean>(false);
   const [officialPrintDoc, setOfficialPrintDoc] = useState<OfficialDocument | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [isProgressPrintOpen, setIsProgressPrintOpen] = useState<boolean>(false);
 
   // Synchronize modal doc if doc gets updated
   useEffect(() => {
@@ -168,6 +181,16 @@ export default function App() {
     };
 
     setDocuments((prev) => [newDoc, ...prev]);
+
+    // Gửi email thông báo cho cán bộ được phân công
+    const assignee = members.find(m => m.name === newDocData.assignee);
+    if (assignee && assignee.email) {
+      sendEmailNotification(
+        assignee.email,
+        `Thông báo phân công văn bản mới: ${newDocData.number}`,
+        `Đồng chí có văn bản mới cần thụ lý: ${newDocData.summary}. Hạn xử lý: ${newDocData.deadline}.`
+      );
+    }
   };
 
   const handleUpdateStatus = (id: string, newStatus: DocumentStatus) => {
@@ -256,10 +279,6 @@ export default function App() {
     setMembers((prev) => [...prev, newMember]);
   };
 
-  const handleUpdateMember = (id: string, updated: Partial<Member>) => {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...updated } : m)));
-  };
-
   const handleDeleteMember = (id: string) => {
     setMembers((prev) => prev.filter((m) => m.id !== id));
   };
@@ -330,18 +349,35 @@ export default function App() {
       setStatusFilter('all');
       setAssigneeFilter('all');
       setKindFilter('all');
+      setCategoryFilter('all');
       setSearchQuery('');
       setShowOverdueOnly(false);
     }
   };
 
+  const handleUpdateMember = (id: string, updated: Partial<Member>) => {
+    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...updated } : m)));
+  };
+
+  const [showLogin, setShowLogin] = useState(false);
+  
   // If not logged in, render LoginScreen
   if (!currentUser) {
-    return <LoginScreen members={members} onLogin={handleLogin} />;
+    if (showLogin) {
+      return (
+        <LoginScreen 
+          members={members}
+          onLogin={handleLogin}
+          onUpdateMember={handleUpdateMember}
+          onAddMember={handleAddMember}
+        />
+      );
+    }
+    return <PortalInterface onLoginClick={() => setShowLogin(true)} />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-red-100 flex flex-col font-sans">
       {/* Top Header */}
       <Header
         currentUser={currentUser}
@@ -398,6 +434,8 @@ export default function App() {
             setSearchQuery={setSearchQuery}
             kindFilter={kindFilter}
             setKindFilter={setKindFilter}
+            categoryFilter={categoryFilter}
+            setCategoryFilter={setCategoryFilter}
             showOverdueOnly={showOverdueOnly}
             setShowOverdueOnly={setShowOverdueOnly}
             onUpdateStatus={handleUpdateStatus}
@@ -509,6 +547,15 @@ export default function App() {
           documents={documents}
           onUpdateProfile={handleUpdateProfile}
           onViewDocDetail={(doc) => setSelectedDetailDoc(doc)}
+          onPrint={() => setIsProgressPrintOpen(true)}
+        />
+      )}
+
+      {isProgressPrintOpen && currentUser && (
+        <PersonalProgressPrintModal
+          currentUser={currentUser}
+          documents={documents}
+          onClose={() => setIsProgressPrintOpen(false)}
         />
       )}
     </div>
