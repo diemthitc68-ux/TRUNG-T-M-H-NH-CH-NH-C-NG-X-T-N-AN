@@ -17,6 +17,7 @@ import { PrintSlipModal } from './components/PrintSlipModal';
 import { PrintRegistryModal } from './components/PrintRegistryModal';
 import { OfficialDocumentPrintModal } from './components/OfficialDocumentPrintModal';
 import { LoginScreen } from './components/LoginScreen';
+import { MyProfileModal } from './components/MyProfileModal';
 
 export default function App() {
   // 1. Current Logged-in Official (Authentication State)
@@ -88,6 +89,7 @@ export default function App() {
   const [isPrintRegistryOpen, setIsPrintRegistryOpen] = useState<boolean>(false);
   const [isOfficialPrintOpen, setIsOfficialPrintOpen] = useState<boolean>(false);
   const [officialPrintDoc, setOfficialPrintDoc] = useState<OfficialDocument | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Synchronize modal doc if doc gets updated
   useEffect(() => {
@@ -115,8 +117,26 @@ export default function App() {
     }
   };
 
+  const handleUpdateProfile = (updatedData: Partial<Member>) => {
+    if (!currentUser) return;
+    const updatedUser = { ...currentUser, ...updatedData };
+    setCurrentUser(updatedUser);
+    try {
+      localStorage.setItem('tanan_current_user', JSON.stringify(updatedUser));
+    } catch (e) {
+      console.error('Failed to save current user to localStorage', e);
+    }
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id === currentUser.id || m.name === currentUser.name ? { ...m, ...updatedData } : m
+      )
+    );
+  };
+
   const myDocCount = currentUser
-    ? documents.filter((d) => d.assignee === currentUser.name && d.status !== 'Đã hoàn thành').length
+    ? documents.filter(
+        (d) => d.assignee && d.assignee.includes(currentUser.name) && d.status !== 'Đã hoàn thành'
+      ).length
     : 0;
 
   const isMyDocFilterActive = currentUser ? assigneeFilter === currentUser.name : false;
@@ -345,6 +365,7 @@ export default function App() {
         myDocCount={myDocCount}
         isMyDocFilterActive={isMyDocFilterActive}
         onToggleMyDocFilter={handleToggleMyDocFilter}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
       />
 
       {/* Main Viewport Container */}
@@ -476,6 +497,18 @@ export default function App() {
           documents={documents}
           members={members}
           onClose={() => setIsOfficialPrintOpen(false)}
+        />
+      )}
+
+      {/* My Profile Modal */}
+      {currentUser && (
+        <MyProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          currentUser={currentUser}
+          documents={documents}
+          onUpdateProfile={handleUpdateProfile}
+          onViewDocDetail={(doc) => setSelectedDetailDoc(doc)}
         />
       )}
     </div>

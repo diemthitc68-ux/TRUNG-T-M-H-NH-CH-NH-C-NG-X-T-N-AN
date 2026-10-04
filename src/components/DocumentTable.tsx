@@ -59,32 +59,68 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
   // Helper to determine deadline status
   const getDeadlineStatus = (deadline: string, status: DocumentStatus) => {
     if (status === 'Đã hoàn thành') {
-      return { label: 'Đã xong', style: 'text-emerald-700 bg-emerald-50' };
-    }
-
-    const todayDate = new Date(today);
-    const deadlineDate = new Date(deadline);
-    const diffDays = Math.ceil((deadlineDate.getTime() - todayDate.getTime()) / (1000 * 3600 * 24));
-
-    if (diffDays < 0) {
       return {
-        label: `Quá hạn ${Math.abs(diffDays)} ngày`,
-        style: 'text-rose-700 font-semibold bg-rose-50 border border-rose-200',
-        isOverdue: true,
+        label: 'Đã xong',
+        style: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+        isOverdue: false,
+        daysOverdue: 0,
       };
     }
+
+    if (!deadline) {
+      return {
+        label: 'Chưa có hạn',
+        style: 'text-slate-500 bg-slate-50 border border-slate-200',
+        isOverdue: false,
+        daysOverdue: 0,
+      };
+    }
+
+    const todayDate = new Date(today).getTime();
+    const deadlineDate = new Date(deadline).getTime();
+    const diffDays = Math.round((deadlineDate - todayDate) / (1000 * 3600 * 24));
+    const isOverdue = deadline < today || diffDays < 0;
+
+    if (isOverdue) {
+      const days = Math.max(1, Math.abs(diffDays));
+      return {
+        label: `Quá hạn ${days} ngày`,
+        style: 'text-red-900 font-bold bg-red-100 border border-red-300',
+        isOverdue: true,
+        daysOverdue: days,
+      };
+    }
+
+    if (diffDays === 0) {
+      return {
+        label: 'Hạn hôm nay',
+        style: 'text-amber-900 font-bold bg-amber-100 border border-amber-300 animate-pulse',
+        isOverdue: false,
+        daysOverdue: 0,
+      };
+    }
+
     if (diffDays <= 2) {
       return {
         label: `Còn ${diffDays} ngày`,
         style: 'text-amber-800 font-medium bg-amber-50 border border-amber-200',
-        isNear: true,
+        isOverdue: false,
+        daysOverdue: 0,
       };
     }
+
     return {
       label: `Còn ${diffDays} ngày`,
-      style: 'text-slate-600 bg-slate-50',
+      style: 'text-slate-600 bg-slate-50 border border-slate-200',
+      isOverdue: false,
+      daysOverdue: 0,
     };
   };
+
+  // Count total overdue docs across current documents
+  const totalOverdueDocs = documents.filter(
+    (d) => d.status !== 'Đã hoàn thành' && d.deadline && d.deadline < today
+  ).length;
 
   // Filter logic
   const filteredDocs = documents.filter((doc) => {
@@ -290,6 +326,30 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
         </div>
       </div>
 
+      {/* Visual Red Alert Bar for Overdue Documents */}
+      {totalOverdueDocs > 0 && (
+        <div className="bg-red-50 border-b border-red-200 px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-red-900">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+            </span>
+            <span className="font-bold text-red-800 uppercase tracking-wider text-[11px]">
+              Cảnh Báo Quá Hạn:
+            </span>
+            <span>
+              Có <strong>{totalOverdueDocs}</strong> văn bản đã vượt quá 'Hạn giải quyết' (được bôi đỏ nổi bật).
+            </span>
+          </div>
+          <button
+            onClick={() => setShowOverdueOnly(!showOverdueOnly)}
+            className="text-[11px] font-bold text-red-700 hover:text-red-900 underline whitespace-nowrap self-start sm:self-auto cursor-pointer"
+          >
+            {showOverdueOnly ? 'Hiển thị tất cả' : 'Lọc riêng các văn bản quá hạn →'}
+          </button>
+        </div>
+      )}
+
       {/* Main Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm border-collapse">
@@ -324,17 +384,28 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
               filteredDocs.map((doc) => {
                 const deadlineInfo = getDeadlineStatus(doc.deadline, doc.status);
                 const statusBadge = getStatusBadge(doc.status);
+                const isOverdue = deadlineInfo.isOverdue;
 
                 return (
                   <tr
                     key={doc.id}
-                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                    className={`${
+                      isOverdue
+                        ? 'bg-red-50/90 hover:bg-red-100 text-slate-900 border-l-[5px] border-l-red-600 shadow-[inset_0_1px_0_0_#fecaca]'
+                        : 'hover:bg-slate-50/80 border-l-[5px] border-l-transparent'
+                    } transition-colors group cursor-pointer`}
                     onClick={() => onViewDetail(doc)}
                   >
                     {/* Số / Ký hiệu */}
                     <td className="py-3 px-3.5 align-top">
-                      <div className="font-bold text-slate-900 font-mono text-xs sm:text-sm">
-                        {doc.number}
+                      <div className="font-bold text-slate-900 font-mono text-xs sm:text-sm flex items-center gap-1.5 flex-wrap">
+                        <span>{doc.number}</span>
+                        {isOverdue && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded bg-red-600 text-white shadow-xs tracking-wider uppercase">
+                            <AlertTriangle className="w-2.5 h-2.5" />
+                            Quá hạn
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-slate-400" />
@@ -396,13 +467,21 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
 
                     {/* Hạn xử lý */}
                     <td className="py-3 px-3.5 align-top whitespace-nowrap">
-                      <div className="font-mono text-xs font-semibold text-slate-800 tabular-nums">
-                        {doc.deadline}
+                      <div
+                        className={`font-mono text-xs tabular-nums flex items-center gap-1 ${
+                          isOverdue ? 'text-red-700 font-bold' : 'text-slate-800 font-semibold'
+                        }`}
+                      >
+                        <Calendar
+                          className={`w-3.5 h-3.5 ${isOverdue ? 'text-red-600' : 'text-slate-400'}`}
+                        />
+                        <span>{doc.deadline}</span>
                       </div>
                       <div className="mt-1">
                         <span
-                          className={`text-[11px] px-1.5 py-0.5 rounded inline-block tabular-nums ${deadlineInfo.style}`}
+                          className={`text-[11px] px-2 py-0.5 rounded inline-flex items-center gap-1 tabular-nums ${deadlineInfo.style}`}
                         >
+                          {isOverdue && <Clock className="w-3 h-3 text-red-700 shrink-0" />}
                           {deadlineInfo.label}
                         </span>
                       </div>
@@ -421,13 +500,22 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
                           {statusBadge.label}
                         </span>
 
+                        {isOverdue && (
+                          <div className="text-[10px] text-red-700 font-bold flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3 text-red-600 shrink-0" />
+                            <span>Trễ tiến độ</span>
+                          </div>
+                        )}
+
                         <div>
                           <select
                             value={doc.status}
                             onChange={(e) =>
                               onUpdateStatus(doc.id, e.target.value as DocumentStatus)
                             }
-                            className="text-[11px] py-1 px-1.5 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-red-800 focus:outline-hidden text-slate-700 w-full"
+                            className={`text-[11px] py-1 px-1.5 bg-white border rounded focus:ring-1 focus:ring-red-800 focus:outline-hidden text-slate-700 w-full ${
+                              isOverdue ? 'border-red-300 font-medium' : 'border-slate-300'
+                            }`}
                           >
                             <option value="Mới tiếp nhận">Mới tiếp nhận</option>
                             <option value="Đang xử lý">Đang xử lý</option>
@@ -494,15 +582,19 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
       </div>
 
       {/* Table Footer */}
-      <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-        <div className="flex items-center gap-3">
+      <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between text-xs text-slate-500 gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-100 text-red-900 border border-red-300 font-semibold text-[11px]">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-600 inline-block shrink-0 animate-pulse"></span>
+            <span>Dòng bôi đỏ: Văn bản đã quá 'Hạn giải quyết' (chưa hoàn thành)</span>
+          </div>
+          <span className="hidden sm:inline text-slate-300">|</span>
           <span>
-            Hệ thống quản lý văn bản điện tử xã Tân An tuân thủ quy chuẩn Nghị định 30/2020/NĐ-CP về
-            công tác văn thư.
+            Tuân thủ quy chuẩn Nghị định 30/2020/NĐ-CP về công tác văn thư lưu trữ.
           </span>
         </div>
-        <div className="font-mono text-slate-600">
-          Cập nhật: {new Date().toLocaleTimeString('vi-VN')}
+        <div className="font-mono text-slate-600 whitespace-nowrap text-[11px]">
+          Hôm nay: <strong className="text-slate-800">{today}</strong>
         </div>
       </div>
     </div>

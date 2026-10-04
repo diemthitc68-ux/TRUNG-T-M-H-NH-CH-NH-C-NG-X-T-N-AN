@@ -107,6 +107,10 @@ export const MemberList: React.FC<MemberListProps> = ({
   };
 
   const handleDelete = (member: Member) => {
+    if (member.name === 'Huỳnh Phú Kính') {
+      alert('Không thể xóa tài khoản Quản trị viên hệ thống!');
+      return;
+    }
     const { pending } = getMemberDocCount(member.name);
     let confirmPrompt = `Đồng chí có chắc chắn muốn xóa cán bộ "${member.name}" khỏi hệ thống UBND xã?`;
     if (pending > 0) {
@@ -119,6 +123,8 @@ export const MemberList: React.FC<MemberListProps> = ({
 
   const filteredMembers = members.filter((m) => {
     const q = searchQuery.toLowerCase();
+    // Exclude Admin from normal view
+    if (m.name === 'Huỳnh Phú Kính') return false;
     return (
       m.name.toLowerCase().includes(q) ||
       m.role.toLowerCase().includes(q) ||

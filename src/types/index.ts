@@ -19,6 +19,9 @@ export interface Member {
   email?: string;
   username?: string;
   password?: string;
+  cccd?: string;
+  dob?: string;
+  address?: string;
   notes?: string;
   createdAt: string;
 }

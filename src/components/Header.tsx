@@ -27,6 +27,7 @@ interface HeaderProps {
   myDocCount: number;
   isMyDocFilterActive: boolean;
   onToggleMyDocFilter: () => void;
+  onOpenProfileModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,6 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
   myDocCount,
   isMyDocFilterActive,
   onToggleMyDocFilter,
+  onOpenProfileModal,
 }) => {
   // Current Vietnamese date format
   const currentDate = new Intl.DateTimeFormat('vi-VN', {
@@ -93,6 +95,18 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* Nút đặt trên thanh Header (Bên cạnh tên đăng nhập) */}
+            <button
+              onClick={onOpenProfileModal}
+              title="Xem và cập nhật Hồ Sơ Cán Bộ & Nhiệm Vụ Cá Nhân"
+              className="btn-my-profile"
+            >
+              <span>🧰 Hồ sơ của tôi</span>
+              <span className="profile-badge" id="my-assigned-count">
+                {myDocCount}
+              </span>
+            </button>
 
             {/* Logout button */}
             <button
